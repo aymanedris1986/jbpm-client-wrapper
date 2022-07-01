@@ -1,5 +1,7 @@
 package jbpm.client.wrapper;
-import org.kie.server.client.*;
+import org.kie.server.client.KieServicesClient;
+import org.kie.server.client.KieServicesFactory;
+import org.kie.server.client.KieServicesConfiguration;
 public class ClientFactory {
     static String kieRestUrl;
     static String adminUserName;
