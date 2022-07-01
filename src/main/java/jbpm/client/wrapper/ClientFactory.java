@@ -20,7 +20,7 @@ public class ClientFactory {
         return client.getServicesClient(serviceClient);
     }
 
-    public void createClientFactory(String kieRestUrl,String adminUserName,String adminUserPassword){
+    public static void createClientFactory(String kieRestUrl,String adminUserName,String adminUserPassword){
         ClientFactory.kieRestUrl = kieRestUrl;
         ClientFactory.adminUserName = adminUserName;
         ClientFactory.adminUserPassword = adminUserPassword;
@@ -28,7 +28,7 @@ public class ClientFactory {
 
 
 
-    public ClientSession getClientSession(String userName,String password){
+    public static ClientSession getClientSession(String userName,String password){
         return new ClientSession(userName,password);
     }
 }
