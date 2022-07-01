@@ -11,7 +11,7 @@ public class ClientFactory {
 
     }
 
-    static <T> T geAdmintServicesClient(Class<T> serviceClient){
+    static <T> T geAdminServicesClient(Class<T> serviceClient){
         return getServicesClient(serviceClient,adminUserName, adminUserPassword);
     }
     static <T> T getServicesClient(Class<T> serviceClient,String userName,String password){

@@ -1,6 +1,7 @@
 package jbpm.client.wrapper;
 
 import org.kie.server.api.model.definition.ProcessDefinition;
+import org.kie.server.api.model.instance.TaskInstance;
 import org.kie.server.api.model.instance.TaskSummary;
 import org.kie.server.client.UserTaskServicesClient;
 import org.kie.server.client.ProcessServicesClient;
@@ -8,6 +9,7 @@ import org.kie.server.client.QueryServicesClient;
 
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
 
 public class ClientSession {
     private String userName;
@@ -19,55 +21,78 @@ public class ClientSession {
     private ProcessServicesClient processServicesClient;
 
     private QueryServicesClient queryServicesClient;
+
     public ClientSession(String userName, String password) {
-        this(userName,password,10);
+        this(userName, password, 10);
     }
-    public ClientSession(String userName, String password,int taskFetchSize) {
+
+    public ClientSession(String userName, String password, int taskFetchSize) {
         this.userName = userName;
         this.password = password;
         this.taskFetchSize = taskFetchSize;
     }
 
-    public List<TaskSummary> getUserTasks(){
+    public List<TaskSummary> getUserTasks() {
         return getUserTasks(0);
     }
-    public List<TaskSummary> getUserTasks(int pageNumber){
-        return getUserTaskServicesClient().findTasks(userName,pageNumber,taskFetchSize);
+
+    public List<TaskSummary> getUserTasks(int pageNumber) {
+        return getUserTaskServicesClient().findTasks(userName, pageNumber, taskFetchSize);
     }
 
-    public Long initiateProcess(String processDefId){
+    public Long initiateProcess(String processDefId) {
         ProcessDefinition processDef = getLatestProcessDefinitionById(processDefId);
-        return initiateProcess(processDef.getContainerId(),processDef.getId());
+        return initiateProcess(processDef.getContainerId(), processDef.getId());
     }
 
-    public Long initiateProcess(String containerId,String processDefId){
-        return getProcessServicesClient().startProcess(containerId,processDefId);
+    public Long initiateProcess(String containerId, String processDefId) {
+        return getProcessServicesClient().startProcess(containerId, processDefId);
     }
 
-    public ProcessDefinition getLatestProcessDefinitionById(String processDefId){
-        Comparator<ProcessDefinition> maxProcessDefVersion = Comparator.comparing( ProcessDefinition::getVersion);
+    public ProcessDefinition getLatestProcessDefinitionById(String processDefId) {
+        Comparator<ProcessDefinition> maxProcessDefVersion = Comparator.comparing(ProcessDefinition::getVersion);
         return getQueryServicesClient().findProcessesById(processDefId).stream().max(maxProcessDefVersion).get();
     }
 
+    public TaskInstance findTask(Long id) {
+        return getUserTaskServicesClient().findTaskById(id);
+    }
+
+    public void startTask(Long taskId) {
+        TaskInstance task = findTask(taskId);
+        startTask(task);
+    }
+
+    public void startTask(TaskInstance task) {
+        getUserTaskServicesClient().startTask(task.getContainerId(), task.getId(), userName);
+    }
+    public void completeTask(TaskInstance task, Map<String, Object> params) {
+        getUserTaskServicesClient().completeTask(task.getContainerId(), task.getId(), userName, params);
+    }
+    public void completeTask(Long taskId, Map<String, Object> params) {
+        TaskInstance task = findTask(taskId);
+        completeTask(task, params);
+    }
 
 
-    public UserTaskServicesClient getUserTaskServicesClient(){
-        if (userTaskServicesClient == null){
-            userTaskServicesClient = ClientFactory.getServicesClient(UserTaskServicesClient.class,userName,password);
+
+    public UserTaskServicesClient getUserTaskServicesClient() {
+        if (userTaskServicesClient == null) {
+            userTaskServicesClient = ClientFactory.getServicesClient(UserTaskServicesClient.class, userName, password);
         }
         return userTaskServicesClient;
     }
 
-    public ProcessServicesClient getProcessServicesClient(){
-        if(processServicesClient == null){
-            processServicesClient = ClientFactory.getServicesClient(ProcessServicesClient.class,userName,password);
+    public ProcessServicesClient getProcessServicesClient() {
+        if (processServicesClient == null) {
+            processServicesClient = ClientFactory.getServicesClient(ProcessServicesClient.class, userName, password);
         }
         return processServicesClient;
     }
 
-    public QueryServicesClient getQueryServicesClient(){
-        if(queryServicesClient == null){
-            queryServicesClient = ClientFactory.getServicesClient(QueryServicesClient.class,userName,password);
+    public QueryServicesClient getQueryServicesClient() {
+        if (queryServicesClient == null) {
+            queryServicesClient = ClientFactory.getServicesClient(QueryServicesClient.class, userName, password);
         }
         return queryServicesClient;
     }
