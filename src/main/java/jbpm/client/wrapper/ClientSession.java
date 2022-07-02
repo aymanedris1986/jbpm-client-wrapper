@@ -7,9 +7,8 @@ import org.kie.server.client.UserTaskServicesClient;
 import org.kie.server.client.ProcessServicesClient;
 import org.kie.server.client.QueryServicesClient;
 
-import java.util.Comparator;
-import java.util.List;
-import java.util.Map;
+
+import java.util.*;
 
 public class ClientSession {
     private String userName;
@@ -37,17 +36,26 @@ public class ClientSession {
     }
 
     public List<TaskSummary> getUserTasks(int pageNumber) {
-        return getUserTaskServicesClient().findTasks(userName, pageNumber, taskFetchSize);
+        return getUserTaskServicesClient().findTasksOwned(userName, Arrays.asList(TaskStatus.Ready.toString(), TaskStatus.Reserved.toString(), TaskStatus.InProgress.toString()), pageNumber, taskFetchSize);
     }
 
     public Long initiateProcess(String processDefId) {
+        return initiateProcess(processDefId, new HashMap<>());
+    }
+
+    public Long initiateProcess(String processDefId, Map<String, Object> variables) {
         ProcessDefinition processDef = getLatestProcessDefinitionById(processDefId);
-        return initiateProcess(processDef.getContainerId(), processDef.getId());
+        return initiateProcess(processDef.getContainerId(), processDef.getId(), variables);
     }
 
     public Long initiateProcess(String containerId, String processDefId) {
-        return getProcessServicesClient().startProcess(containerId, processDefId);
+        return initiateProcess(containerId, processDefId, null);
     }
+
+    public Long initiateProcess(String containerId, String processDefId, Map<String, Object> variables) {
+        return getProcessServicesClient().startProcess(containerId, processDefId, variables);
+    }
+
 
     public ProcessDefinition getLatestProcessDefinitionById(String processDefId) {
         Comparator<ProcessDefinition> maxProcessDefVersion = Comparator.comparing(ProcessDefinition::getVersion);
@@ -66,14 +74,15 @@ public class ClientSession {
     public void startTask(TaskInstance task) {
         getUserTaskServicesClient().startTask(task.getContainerId(), task.getId(), userName);
     }
+
     public void completeTask(TaskInstance task, Map<String, Object> params) {
         getUserTaskServicesClient().completeTask(task.getContainerId(), task.getId(), userName, params);
     }
+
     public void completeTask(Long taskId, Map<String, Object> params) {
         TaskInstance task = findTask(taskId);
         completeTask(task, params);
     }
-
 
 
     public UserTaskServicesClient getUserTaskServicesClient() {

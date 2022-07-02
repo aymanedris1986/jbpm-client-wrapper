@@ -1,4 +1,5 @@
 package jbpm.client.wrapper;
+import org.kie.server.api.marshalling.MarshallingFormat;
 import org.kie.server.client.KieServicesClient;
 import org.kie.server.client.KieServicesFactory;
 import org.kie.server.client.KieServicesConfiguration;
@@ -16,6 +17,7 @@ public class ClientFactory {
     }
     static <T> T getServicesClient(Class<T> serviceClient,String userName,String password){
         KieServicesConfiguration config = KieServicesFactory.newRestConfiguration(kieRestUrl, userName, password);
+        config.setMarshallingFormat(MarshallingFormat.JSON);
         KieServicesClient client = KieServicesFactory.newKieServicesClient(config);
         return client.getServicesClient(serviceClient);
     }
